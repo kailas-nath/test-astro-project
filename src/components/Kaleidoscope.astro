@@ -1,24 +1,31 @@
-<div class="relative w-full h-screen overflow-hidden">
-  <canvas id="kaleidoscope" class="absolute inset-0 w-full h-full"></canvas>
+---
+export interface Props {
+  id: string;
+}
+const { id } = Astro.props;
+---
+
+<div class="relative w-full h-[33vh] overflow-hidden">
+  <canvas id={`kaleidoscope-${id}`} class="absolute inset-0 w-full h-full"></canvas>
   
   <!-- Interactive Controls -->
   <div class="absolute bottom-4 left-4 bg-black/50 p-4 rounded-lg backdrop-blur-sm">
     <div class="space-y-4">
       <div>
-        <label class="block text-sm mb-1">Segments: <span id="segmentsValue">12</span></label>
-        <input type="range" id="segments" min="4" max="24" value="12" class="w-full" />
+        <label class="block text-sm mb-1">Segments: <span id={`segmentsValue-${id}`}>12</span></label>
+        <input type="range" id={`segments-${id}`} min="4" max="24" value="12" class="w-full" />
       </div>
       <div>
-        <label class="block text-sm mb-1">Rotation Speed: <span id="speedValue">0.005</span></label>
-        <input type="range" id="speed" min="0" max="0.02" step="0.001" value="0.005" class="w-full" />
+        <label class="block text-sm mb-1">Rotation Speed: <span id={`speedValue-${id}`}>0.005</span></label>
+        <input type="range" id={`speed-${id}`} min="0" max="0.02" step="0.001" value="0.005" class="w-full" />
       </div>
       <div>
-        <label class="block text-sm mb-1">Pattern Size: <span id="sizeValue">200</span></label>
-        <input type="range" id="size" min="50" max="400" value="200" class="w-full" />
+        <label class="block text-sm mb-1">Pattern Size: <span id={`sizeValue-${id}`}>200</span></label>
+        <input type="range" id={`size-${id}`} min="50" max="400" value="200" class="w-full" />
       </div>
       <div>
         <label class="block text-sm mb-1">Pattern Style</label>
-        <select id="patternStyle" class="w-full bg-black/50 rounded p-1">
+        <select id={`patternStyle-${id}`} class="w-full bg-black/50 rounded p-1">
           <option value="triangle">Triangle</option>
           <option value="circle">Circle</option>
           <option value="star">Star</option>
@@ -28,7 +35,7 @@
   </div>
 </div>
 
-<script>
+<script define:vars={{ id }}>
   class Kaleidoscope {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
@@ -42,9 +49,11 @@
     private isMouseDown: boolean = false;
     private lastMouseX: number = 0;
     private lastMouseY: number = 0;
+    private id: string;
 
-    constructor() {
-      this.canvas = document.getElementById('kaleidoscope') as HTMLCanvasElement;
+    constructor(id: string) {
+      this.id = id;
+      this.canvas = document.getElementById(`kaleidoscope-${this.id}`) as HTMLCanvasElement;
       this.ctx = this.canvas.getContext('2d')!;
       this.init();
       this.setupControls();
@@ -57,24 +66,24 @@
     }
 
     private setupControls() {
-      const segmentsInput = document.getElementById('segments') as HTMLInputElement;
-      const speedInput = document.getElementById('speed') as HTMLInputElement;
-      const sizeInput = document.getElementById('size') as HTMLInputElement;
-      const patternSelect = document.getElementById('patternStyle') as HTMLSelectElement;
+      const segmentsInput = document.getElementById(`segments-${this.id}`) as HTMLInputElement;
+      const speedInput = document.getElementById(`speed-${this.id}`) as HTMLInputElement;
+      const sizeInput = document.getElementById(`size-${this.id}`) as HTMLInputElement;
+      const patternSelect = document.getElementById(`patternStyle-${this.id}`) as HTMLSelectElement;
 
       segmentsInput.addEventListener('input', (e) => {
         this.segments = parseInt((e.target as HTMLInputElement).value);
-        document.getElementById('segmentsValue')!.textContent = this.segments.toString();
+        document.getElementById(`segmentsValue-${this.id}`)!.textContent = this.segments.toString();
       });
 
       speedInput.addEventListener('input', (e) => {
         this.rotationSpeed = parseFloat((e.target as HTMLInputElement).value);
-        document.getElementById('speedValue')!.textContent = this.rotationSpeed.toFixed(3);
+        document.getElementById(`speedValue-${this.id}`)!.textContent = this.rotationSpeed.toFixed(3);
       });
 
       sizeInput.addEventListener('input', (e) => {
         this.patternSize = parseInt((e.target as HTMLInputElement).value);
-        document.getElementById('sizeValue')!.textContent = this.patternSize.toString();
+        document.getElementById(`sizeValue-${this.id}`)!.textContent = this.patternSize.toString();
       });
 
       patternSelect.addEventListener('change', (e) => {
@@ -83,8 +92,8 @@
     }
 
     private resize() {
-      this.canvas.width = window.innerWidth;
-      this.canvas.height = window.innerHeight;
+      this.canvas.width = this.canvas.clientWidth;
+      this.canvas.height = this.canvas.clientHeight;
     }
 
     private setupEventListeners() {
@@ -99,8 +108,8 @@
           const dy = this.mouseY - this.lastMouseY;
           this.rotation += dx * 0.01;
           this.patternSize = Math.max(50, Math.min(400, this.patternSize - dy));
-          document.getElementById('size')!.value = this.patternSize.toString();
-          document.getElementById('sizeValue')!.textContent = this.patternSize.toString();
+          document.getElementById(`size-${this.id}`)!.value = this.patternSize.toString();
+          document.getElementById(`sizeValue-${this.id}`)!.textContent = this.patternSize.toString();
         }
         
         this.lastMouseX = this.mouseX;
@@ -193,8 +202,6 @@
     }
   }
 
-  // Initialize the kaleidoscope when the page loads
-  document.addEventListener('DOMContentLoaded', () => {
-    new Kaleidoscope();
-  });
+  // Initialize the kaleidoscope for this specific instance
+  new Kaleidoscope(id);
 </script> 
